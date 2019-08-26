@@ -1,0 +1,671 @@
+* { 
+  margin: 0;
+  padding: 0;
+  font-family: Open Sans, sans-serif;
+}
+
+iframe {
+  border: none;
+  width: 100%;
+}
+
+@font-face {
+    font-family: 'Open Sans';
+    src: url('../../../stylesheets/fonts/opensans-regular-webfont.eot?2');
+    src: url('../../../stylesheets/fonts/opensans-regular-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../../../stylesheets/fonts/opensans-regular-webfont.woff?2') format('woff'),
+         url('../../../stylesheets/fonts/opensans-regular-webfont.ttf?2') format('truetype'),
+         url('../../../stylesheets/fonts/opensans-regular-webfont.svg?2') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Open Sans';
+    src: url('../../../stylesheets/fonts/opensans-bold-webfont.eot?2');
+    src: url('../../../stylesheets/fonts/opensans-bold-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../../../stylesheets/fonts/opensans-bold-webfont.woff?2') format('woff'),
+         url('../../../stylesheets/fonts/opensans-bold-webfont.ttf?2') format('truetype'),
+         url('../../../stylesheets/fonts/opensans-bold-webfont.svg?2') format('svg');
+    font-weight: bold;
+    font-style:  normal;
+}
+
+@font-face {
+    font-family: 'Lato';
+    src: url('../../../stylesheets/fonts/lato-regular-webfont.eot?2');
+    src: url('../../../stylesheets/fonts/lato-regular-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../../../stylesheets/fonts/lato-regular-webfont.woff?2') format('woff'),
+         url('../../../stylesheets/fonts/lato-regular-webfont.ttf?2') format('truetype'),
+         url('../../../stylesheets/fonts/lato-regular-webfont.svg?2') format('svg');
+    font-style: normal;
+}
+
+@font-face {
+  font-family: 'moonshine-font';
+  src: url('../../../stylesheets/fonts/moonshine-font.eot?2');
+  src: url('../../../stylesheets/fonts/moonshine-font.eot?#iefix') format('embedded-opentype'),
+       url('../../../stylesheets/fonts/moonshine-font.woff?2') format('woff'),
+       url('../../../stylesheets/fonts/moonshine-font.ttf?2') format('truetype'),
+       url('../../../stylesheets/fonts/moonshine-font.svg?2') format('svg');
+
+  font-weight: normal;
+  font-style: normal;
+}
+
+.hidden {display: none}
+.icon {
+  font-family: 'moonshine-font',Open Sans,Arial,sans-serif;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  text-decoration: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: color .25s ease-in-out;
+  -webkit-transition: color .25s ease-in-out;
+  -moz-transition: color .25s ease-in-out;
+  -ms-transition: color .25s ease-in-out;
+  -o-transition: color .25s ease-in-out;
+}
+
+.icon.i-calculator:before {
+  content: "\e970"
+}
+
+
+#quota_simulator {
+  overflow: hidden;
+}
+
+#simulator {
+  display: flex;
+  flex-direction: row;
+  margin-top: 2em;
+}
+
+#quota_selection li {
+  width: 99.6%;
+  clear: left;
+  display: inline-block;
+  vertical-align: middle;
+  margin:.25em 0;
+}
+#quota_selection li.finance-links {
+  text-align:right;
+  margin: 0
+}
+
+#quota_selection li.promotion {
+  border: 1px solid #ddd;
+  text-align: center;
+  font-size: .9em;
+  min-width: 10em;
+  margin-top: .5 0 0 0;
+}
+
+#quota_selection li.selected,
+
+#quota_selection a {
+  color: #333;
+  text-decoration: none;
+  display: table-row;
+}
+
+#quota_selection p {
+  display: table-cell;
+  vertical-align: middle;
+  padding: 2px 10px;
+  position: relative;
+}
+
+#quota_selection p.tae-container {
+  position:absolute;
+  right:0px;
+}
+#quota_selection p.tae-container span {
+  text-align:right;
+  margin-right: 60px;
+}
+
+#quota_selection .quotas {
+  display: block;
+  font-size: .8em;
+}
+
+#quota_selection .tae {
+  display: block;
+  font-size: 12px;
+  position: relative;
+  top: 4px;
+}
+
+#quota_selection .quota_amount {
+  display: block;
+  font-size: 1.5em;
+}
+
+#quota_selection .summary {
+  border-right: 1px solid #dfdfdf;
+}
+
+#quota_selection .summary._b {
+  padding-left: 26px;
+}
+
+#quota_selection .summary._b:before {
+  content: '+';
+  vertical-align: middle;
+  position: absolute;
+  left: 0em;
+  width: 20px;
+  line-height: 20px;
+  height: 20px;
+  font-weight: bold;
+  margin: .5em 0;
+  font-size: 2.2em;
+  color: #060;
+}
+
+#quota_selection .conditions {
+  text-align: left;
+}
+
+#quota_selection .simulate {
+  text-align: right;
+  display: inline-block;
+  font-size: 11px;
+  text-decoration: underline;
+  padding:0 4px;
+  color: #008c2e;
+}
+.hpc #quota_selection .simulate {
+  color: #31658a;
+}
+
+#quota_selection .text {
+  display: block;
+  padding: 2px 0;
+  margin-top: 5px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+
+#quota_simulator-inner {
+  border-radius: 8px;
+  margin: 1em;
+  padding: 1em;
+  position: relative;
+  user-select: none;
+  min-width: 495px;
+}
+
+h3 {
+  font-size: 3em;
+  line-height: 1em;
+  display: inline-block;
+}
+
+#simulator-combos {
+  border-left: 1px solid #ccc;
+  display: inline-block;
+  height: 3em;
+  margin-left: 1em;
+  padding-left: 1em;
+  vertical-align: top;
+}
+
+#simulator-combos strong {
+  font-size: 12px;
+  margin-right: 1em;
+}
+
+#simulator-controls {
+  position: relative;
+  width: 100%;
+}
+
+#simulator-controls ol {
+  background: #ddd;
+  border-radius: 1em;
+  box-shadow: inset 0 .25em 1em #bbb;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  height: 12px;
+  list-style: none;
+  position: absolute;
+  top: 10px;
+  width: 100%;
+}
+
+#simulator-controls li {
+  flex: 1 1 auto;
+  text-align: right;
+  position: relative;
+}
+
+#simulator-controls li:last-child { border-radius: 0 1em 1em 0 }
+#simulator-controls li:first-child  { border-radius: 1em 0 0 1em }
+#simulator-controls li p {
+  color: #999;
+  font-size: 11px;
+  position: absolute;
+  text-align: center;
+  top: -24px;
+  right: -50px;
+  width: 100px;
+}
+
+#simulator-area {
+  height: 100%;
+  position: absolute;
+  width: 100%;
+  z-index: 120;
+  cursor: ew-resize;
+}
+
+#simulator-bar {
+  background: #0c3 url('bars.gif');
+  border: 1px solid rgba(0,0,0,.1);
+  border-radius: 1em;
+  box-sizing: border-box;
+  box-shadow: 0 .25em .5em rgba(0,0,0,.25);
+  height: 12px;
+  position: relative;
+  top: 10px;
+  transition: background-color .5s ease-in-out;
+}
+
+.hpc #simulator-bar {
+  background: #31658a url('bars_hpc.gif');
+}
+
+#simulator-bar.loading {
+  background-color: #0b2;
+}
+
+.hpc #simulator-bar.loading {
+  background-color: #76abd1;
+}
+
+#simulator-drag, #simulator-hint {
+  border-radius: 15px;
+  display: block;
+  height: 24px;
+  margin-top: -18px;
+  margin-left: -12px;
+  position: absolute;
+  top: 22px;
+  width: 24px;
+  z-index: 3;
+}
+
+#simulator-drag {
+  background: #093;
+  box-shadow: 0 .25em .5em rgba(0,0,0,.25);
+}
+
+.hpc #simulator-drag {
+  background: #1969a3;
+}
+
+#simulator-hint {
+  background: rgba(0,0,0,.1);
+  border-radius: 100%;
+  transition: opacity .5s ease-in-out;
+  z-index: 4;
+}
+
+#simulator-hint._dragged { opacity: 1 }
+#simulator-hint._hidden  { opacity: 0 }
+
+#simulator-tip {
+  background: #333;
+  border-radius: 2em;
+  box-shadow: 0 .25em .5em rgba(0,0,0,.25);
+  color: #ccc;
+  font-size: 12px;
+  line-height: 1.75em;
+  margin-left: -32px;
+  position: relative;
+  top: 24px;
+  text-align: center;
+  width: 64px;
+  z-index: 50;
+}
+
+#simulator-tip:before {
+  content: " ";
+  position: absolute;
+  left: 50%;
+  margin-top: -10px;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent #333 transparent;
+}
+
+.simulation-info {
+  color: #666;
+  border-radius: .5em;
+  background: rgba(255,255,255,.5);
+  font-size: 1.25em;
+}
+
+.simulation-data {
+  margin-top: 2em;
+}
+
+.simulation-data:after { 
+  content: '';
+  display: block;
+  clear: both;
+}
+
+.simulation-info, .simulation-details {
+  display: block;
+  width: 100%;
+}
+
+.simulation-info p {
+  display: inline-block;
+  line-height: 1.25em;
+  background: #eee;
+  padding: .25em 1em;
+}
+
+.simulation-info p._bottom,
+.simulation-info p._top {
+  display: block;
+  text-align: center;
+  line-height: 2em;
+}
+
+.simulation-info #quota_text {
+  color: #060;
+  font-weight: bold;
+}
+
+.simulation-info p._top {
+  margin-bottom: .5em;
+  border-bottom: 1px solid #ddd;
+}
+
+.simulation-info p._bottom {
+  margin-top: .5em;
+  border-top:  1px solid #ddd;
+}
+
+.simulation-info ._big {
+  padding: 0;
+  text-align: right;
+}
+
+.simulation-details {
+  margin-top: 1em;
+  font-size: .8em;
+  color: #999;
+}
+
+.simulation-details .description {
+  font-weight: 600;
+  width: 50%;
+}
+
+._green {
+  color: #060;
+  font-weight: 600;
+}
+.hpc ._green{
+  color: #31658a;
+}
+
+.add-to-basket {
+  padding: 3px 0 !important;
+  display: block; 
+  width: 4em;
+  height:2em;
+  float: right;
+  top: -3px;
+  left: 4px;
+}
+.add-to-basket a {
+  display: inline-block !important;
+  background-color: #8c8;
+  padding:.7em;
+}
+.hpc .add-to-basket a {
+  background-color: #31658a;
+}
+.add-to-basket a:hover {
+  background-color: #008c2e;
+}
+.hpc .add-to-basket a:hover {
+  background-color: #31658a;
+}
+.add-to-basket a span {
+  color: #FFF;
+  font-size: 2.05em;
+}
+
+#financial-add_to_cart {
+  float: right;
+  background-color: #8c8;
+  color: #fff;
+  letter-spacing: .1em;
+  padding: 1em 2em;
+  text-align: center;
+  display: inline-block;
+  text-decoration: none;
+  text-transform: uppercase;
+  font-size: .75em;
+  border: 1px solid transparent;
+  transition: opacity .5s ease-in-out;
+}
+
+.hpc #financial-add_to_cart {
+  background-color: #a2c2d9;
+}
+
+#financial-add_to_cart._loading {
+  opacity: .25;
+}
+
+#financial-add_to_cart:hover {
+  background-color: #008c2e;
+}
+
+.hpc #financial-add_to_cart:hover {
+  background-color: #1969a3;
+}
+
+.feci-title {
+  margin: 0 0 0 .8em;
+  text-transform: uppercase;
+  font-size: .75em;
+  border-bottom: 6px solid #d9d9d9;
+  color: #3E3E3E;
+}
+.financial-entity-top{
+  float: right;
+  font-size: 0.65em;
+  text-align: left;
+  padding-right: .65em;
+  position: relative;
+  top: 5px;
+  font-style: italic;
+  color: #b7b7b7;
+}
+
+.financial-entity-bottom{
+  display:none !important;
+}
+
+h1.simulator-title {
+  width: 95%;
+  text-transform: uppercase;
+  border-bottom: 1px solid #D9D9D9;
+  font-size: .9em;
+  padding-left: .5em;
+  color: #060;
+}
+
+.hpc h1.simulator-title {
+  color: #31658a;   
+}
+
+.label-simulator {
+  display: inline-block;
+  width: 145px;
+}
+
+@media only screen and (max-width: 47.9375em) and (min-width: 37.5em), only screen and (max-width: 29.9375em) and (min-width: 20em), only screen and (max-width: 19.9375em){
+  #financial_promotions{
+    margin-top: 15px;
+  }
+  .add-to-basket a {
+    padding: .7em;
+  }
+  #quota_selection li {
+    width: auto;
+    clear: none;
+    display: block;
+    vertical-align: initial;
+    margin: .25em 0;
+  }
+  .add-to-basket{
+    position: relative !important;
+    top: 52px;
+    right: -4px;
+    left: initial;
+  }
+  #quota_selection p {
+    display: block;
+    padding: 9px 0;
+  }
+  #quota_selection a {
+    display: block;
+  }
+  #quota_selection a .summary{
+    border-right: 0px;
+    border-bottom: 1px solid #dfdfdf;
+    padding: 12px 0 12px 15.5%;
+  }
+  #quota_selection a .summary .quotas{
+    display: initial;
+    font-size: 1.25em;
+    top: 0px;
+  }
+  #quota_selection a .summary .quota_amount {
+    display: initial;
+    font-size: 1.5em;
+  }
+
+  #quota_selection a .summary_a{
+    border-right: 0px;
+    border-bottom: 1px solid #dfdfdf;
+    float: left;
+    padding: 4px 0px 4px 0px;
+    text-align: right;
+    width: 47.5%;
+  }
+  #quota_selection a .summary_a .quotas{
+    display: block;
+    font-size: 1em;
+    position: relative;
+    right: 5px;
+  }
+  #quota_selection a .summary_a .quota_amount {
+    display: block;
+    font-size: 1.5em;
+    position: relative;
+    right: 13px;
+  }
+
+  #quota_selection a ._b{
+    float: left;
+    padding: 4px 0px 4px 0px;
+    text-align: left;
+    width: 43%;
+  }
+  #quota_selection a ._b .quotas{
+    display: block;
+    font-size: 1em;
+  }
+  #quota_selection a ._b .quota_amount {
+    display: block;
+    font-size: 1.5em;
+  }
+
+  #quota_selection p.tae-container {
+    position: relative;
+    clear: both;
+    width: auto;
+    padding: 6px 0;
+  }
+  #quota_selection .text{
+    margin-top: 0px;
+  }
+  #quota_simulator-inner{
+    min-width: auto;
+  }
+  #financial-add_to_cart {
+    width: 80%;
+    margin-bottom: 1em;
+  }
+  #quota_simulator-inner h3{
+    width: 100%;
+    text-align: center;
+  }
+  #simulator-combos{
+    margin: 1em 0;
+    border-left: 0px;
+  }
+  .add-to-basket.absolute{
+    position: absolute !important;
+    top: 97px
+  }
+  .simulation-info p {
+    width: 83.5%;
+    text-align: center;
+    float: right;
+    margin: .5em 0;
+  }
+  .simulation-details {
+    margin-top: 0;
+    float: left;
+    width: 95%;
+    margin-left: 1.5em;
+  }
+  #simulator-combos .promotion{
+    width: 95%;
+    margin-bottom: .5em
+  }
+  #simulator-combos .quotas{
+    margin-bottom: .5em
+  }
+  .financial-entity-top{
+    display: none;
+  }
+  .financial-entity-bottom{
+    display:block !important;
+    float: right;
+    font-size: 0.65em;
+    text-align: left;
+    padding-right: .65em;
+    position: relative;
+    top: 0px;
+    font-style: italic;
+    color: #b7b7b7;
+  }
+}
+
+@media only screen and (max-width: 19.9375em){
+  .financial-entity-bottom{
+    font-size: 0.6em;
+  }
+}

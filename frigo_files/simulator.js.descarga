@@ -1,0 +1,440 @@
+var isFramed = parent && parent.geci && parent.geci.moonshine;
+var thisURL = isFramed? parent.GECI_LIBRARY_BASE + 'feci/index.html' : '.';
+
+var initialData = {
+  excludes:       [],
+  price:          '-',
+  totalAmount:    '-',
+  quotaAmount:    '-',
+  expenses:       '-',
+  tae:            '-',
+  tin:            '-',
+  startDate:      '-',
+  promotionText:  '-',
+  xy:             false,
+  //
+  expanded:       false,
+  showSelection:  true,
+  showSimulator:  false,
+  promosLoaded:   false,
+  dragged:        false,
+  loading:        false,
+  cache:          {},
+  simulation:     null,
+  promotion:      null,
+  selectedQuotas: null,
+  hintX:          null
+}
+
+var viewMethods = {
+  reset: function() {
+    this.resetSimulation();
+  },
+
+  resetSimulation: function() {
+    this.totalAmount = '-';
+    this.quotaAmount = '-';
+    this.expenses    = '-';
+    this.tae         = '-';
+    this.tin         = '-';
+  },
+
+  param: function(parameterName) {
+    var result = null,tmp = [];
+    var params = location.search.substr(1).split('&');
+    for (var p=0; p < params.length; p++) {
+      tmp = params[p].split('=');
+      if (tmp[0] === parameterName) return decodeURIComponent(tmp[1]);
+    }
+    return null;
+  },
+
+  fetchProductPromotions: function(productId, callback) {
+    console.log('FETCH PRODUCT PROMOTIONS');
+    var host,endpoint,url;
+    if (this.param('site') === 'hpc'){
+      host = this.param('local')?  'https://wso2-apigw.eci.geci:8243' : 'https://api-manager.elcorteingles.es';
+      endpoint = host + '/financialpromotionsservices/v1.0/financePromotions?siteId=hipercorStore';
+      url = endpoint + '&products=' + productId;
+    }else{
+      host = this.param('local')?  'https://wso2-apigw.eci.geci:8243' : 'https://api-manager.elcorteingles.es';
+      endpoint = host + '/financialpromotionsservices/v1.0/financePromotions';
+      url = endpoint + '?products=' + productId;
+    }
+    var self = this;
+    Vue.http.options.xhr =  { withCredentials: true };
+    Vue.http.get(url).then(function(response) {
+      var promotions = response.data.products_finance_promotions[0];
+      document.body.className = document.body.className + self.param('site'); 
+      if (promotions.product_id == productId) return callback(null, promotions)
+    })
+  },
+
+  fetchSimulation: function(reference, price, promotionId, numQuotas, callback) {
+    var host;
+    if (this.param('site') === 'hpc'){
+      host = this.param('local')?  'https://wso2-apigw.eci.geci:8243' : 'https://api-manager.elcorteingles.es';
+    }else{
+      host = this.param('local')?  'https://wso2-apigw.eci.geci:8243' : 'https://api-manager.elcorteingles.es';
+    }
+    var url = host + '/globalpaymentgateway/2.0/financialSimulator';
+    var options = {
+      version: '02.01.01.00',
+      businessLine: '0001',
+      channel: '002',
+      subChannel: '0001',
+      isCardSimulation: true,
+      language: 'es',
+      installmentsNumber: numQuotas,
+      submitDate: new Date().toISOString().slice(0, 10).replace(/\-/g, ''),
+      submitTime: '12:00:00',
+      shipDate: new Date().toISOString().slice(0, 10).replace(/\-/g, ''),
+      promotionCode: promotionId,
+      OrderAmount: {
+        currencyCode: 'EUR',
+        amount: price
+      },
+      accountDeliveryAmount: 0,
+      companyId: '001',
+      center: '0090',
+      department: '0101',
+      countryCode: '042',
+      lineItems: [{
+        eciRef: reference,
+        netAmount: {
+          currencyCode: 'EUR',
+          amount: price
+        }
+      }]
+    }
+
+    Vue.http.options.xhr =  { withCredentials: true };
+    Vue.http.post(url, options).then(function(response) {
+      return callback(null, response.body)
+    })
+  },
+
+  format: function(n, cents) {
+    if (n == null) return '-';
+    return Math.round(Number(n) * (cents? 1 : 100))/100;
+  },
+
+  percent: function(n) {
+    return this.format(n).toString().replace('.', ',');
+  },
+
+  setSimulationValues: function(s) {
+    this.xy = !!this.promotion.example_x_months;
+    this.simulation = {
+      terms       : s.termsNumber,
+      tae         : Number(s.tae),
+      tin         : (this.xy)? Number(s.averageTin) : s.tin2,
+      quotaAmount : this.format(s.quotaAmount, true),
+      expenses    : this.format(s.promotionCostAmount, true),
+      totalAmount : this.format(s.resultSimulationAmount, true)
+    }
+    if(s.managementCostAmount && (parseInt(s.managementCostAmount,10) > 0)) {
+      this.simulation.expenses = this.format(parseInt(s.managementCostAmount,10) + parseInt(s.promotionCostAmount,10), true);
+    } else {
+      this.simulation.expenses = this.format(s.promotionCostAmount, true);
+    }
+    if (this.xy) {
+      this.simulation.terms1 = s.termsNumber - s.termsNumber2;
+      this.simulation.terms2 = s.termsNumber2;
+      this.simulation.quotaAmount1 = this.simulation.quotaAmount;
+      this.simulation.quotaAmount2 = this.format(s.quotaAmount2, true);
+    }
+  },
+
+  expand: function() {
+    this.expanded = true;
+    if (isFramed) {
+      console.log('is framed');
+      this.$nextTick(parent.geci.moonshine.ui.pdp.setFinanceFullHeight)
+    };
+  },
+
+  launchSimulator: function(promotionId, quotas) {
+    var div = document.createElement('div');
+    var iframe = document.createElement('iframe');
+    iframe.style = 'height: 280px';
+    if (parent.geci.moonshine.ui.isMobile() || parent.geci.moonshine.ui.isPortraitTablet()){
+      iframe.style = 'height: 460px';
+    }
+    iframe.src = thisURL 
+      + '?product='   + this.param('product')
+      + '&site=' + this.param('site')
+      + '&simulator=1';
+    if (promotionId) iframe.src += '&promotion=' + promotionId;
+    if (quotas) iframe.src += '&quotas=' + quotas;
+    div.appendChild(iframe);
+    if (isFramed) {
+      parent.geci.dom.scrollTo(0);
+      parent.geci.moonshine.ui.openModal(div, true, false, 'view-stay')
+    }
+    else document.body.appendChild(div);
+  },
+
+  simulate: function() {
+    var self = this;
+    var id    = self.promotion.id;
+    var ref   = self.reference;
+    var price = self.price * 100;
+    var key = [id, self.selectedQuotas].join('-');
+    if (this.cache[key]) {
+      self.loading = false;
+      return self.setSimulationValues(this.cache[key]);
+    }
+    self.loading = true;
+    self.simulation = {
+      terms: self.selectedQuotas,
+      quotaAmount: null,
+      tae: null,
+      tin: null,
+      totalAmount: null,
+      expenses: null,
+    }
+
+    self.fetchSimulation(ref, price, id, self.selectedQuotas, function(err, result) {
+      if (result.response.Result == 'SUCCESS') {
+        self.loading = false;
+        self.cache[key] = result.returnValue;
+        self.setSimulationValues(self.cache[key]);
+        if (isFramed) {
+          var el = document.getElementById('financial-add_to_cart');
+          var data = {};
+          data.promotion_id = id;
+          data.quote = (self.simulation.quotaAmount * 100).toString();
+          data.month = self.simulation.terms;
+          parent.geci.moonshine.ui.cart.addFinancialItem(el, data);
+        }
+      }
+    })  
+  },
+
+  parsePromotion: function(p) {
+    var lastIndex = p.examples.length - 1;
+    var parsed = {
+      excludes:       [],
+      id:             p.financing_id,
+      min_quotas:     1,
+      max_quotas:     Number(p.max_months) + Number(p.max_months2),
+      example_tae:    p.examples[lastIndex].tae,
+      example_quota:  Number(p.examples[lastIndex].quota),
+      example_months: p.examples[lastIndex].months,
+    };
+    
+    switch (p.type) {
+      case 'X':
+        delete parsed.example_quota;
+        parsed.text = 'Hasta ' + parsed.max_quotas + ' meses';
+        parsed.example_months = Number(p.examples[0].months) +  Number(p.examples[1].months);
+        parsed.example_x_quota = Number(p.examples[0].quota);
+        parsed.example_y_quota = Number(p.examples[1].quota);
+        parsed.example_x_months = Number(p.examples[0].months);
+        parsed.example_y_months = Number(p.examples[1].months);
+        parsed.min_quotas = parsed.example_x_months + 1;
+        parsed.example_tae = p.examples[1].tae;
+        parsed.example_months = parsed.example_x_months + parsed.example_y_months;
+        parsed.max_quotas = Number(p.examples[0].months) + Number(p.examples[1].months);
+        parsed.text = 'Hasta ' + parsed.max_quotas + ' meses sin intereses';        
+        if(p.examples && p.examples.length && p.examples.length >= 2) parsed.text = 'Hasta ' + parsed.max_quotas + ' meses';
+        break;
+      case 'F':
+        var delay = new Date(p.delayed.replace(/ /g,"T"));
+        parsed.delayed = delay;
+        parsed.delayed_text = new Date(delay).toLocaleDateString('es-ES', { month: 'long', day: 'numeric' });
+        parsed.text = '¡Empieza a pagar el ' + parsed.delayed_text + '!';
+        parsed.excludes = [2];
+        break;
+      default:
+        parsed.text = 'Hasta ' + parsed.max_quotas + ' meses sin intereses';
+    }
+    // FIXME
+    if((p.type === 'F') || (p.type === 'M')) {
+      parsed.max_quotas = Number(p.examples[2].months);
+      parsed.min_quotas = Number(p.examples[0].months);
+    }
+    return parsed;
+  },
+
+  loadPromotions: function() {
+    var self = this;
+    console.log(this);
+    self.fetchProductPromotions(self.param('product'), function(err, result) {
+      self.promotionsList = [];
+      if (err) return;
+      var data = {};
+      var promotions = result.finance_promotions;
+      if (!promotions) return;
+      for (var i=0; i < promotions.length; i++) {
+        var p = self.parsePromotion(promotions[i]);
+        data[p.id] = p;
+        self.promotionsList.push(p);
+      };
+      self.promotions = data;
+      self.reference = result.eci_ref;
+      self.promosLoaded = true;
+      self.price = Number(result.price);
+      if (isFramed) parent.geci.moonshine.ui.pdp.showFinance();
+
+      var promotionId = self.param('promotion');
+      var quotas = self.param('quotas');
+      if (promotionId && quotas) self.switchToPromotion(promotionId, quotas);
+    });
+  },
+
+  getPromotionClass: function(promotion) {
+    return 'promotion';
+  },
+
+  switchToPromotion: function(id, months) {
+    this.selectedQuotas = Number(months);
+    this.promotion = this.promotions[id];
+    this.simulate();
+  },
+
+  pluralize: function(text, count) {
+    return text + (count == 1? '' : 's');
+  },
+
+  amount: function fix(n) {
+    if (!n) return '-';
+    return n.toFixed(2)
+          .replace('.', ',')
+          .replace(',00','')
+          .replace(/\B(?=(\d{3})+(?!\d))/g, ".") + ' €';
+  },
+
+  startDrag: function(ev) {
+    this.dragged = true;
+    var rect  = document.body.getBoundingClientRect();
+    var areaRect = this.$refs.area.getBoundingClientRect();
+    var width = areaRect.right - areaRect.left;
+    var left  = ev.clientX - rect.left - areaRect.left;
+    var ratio = Math.max(Math.min(left / width, 1), 0);
+    this.hintX = 100 * ratio;
+    this.setValue(ratio);
+    window.addEventListener('mousemove', this.hintMove);
+    window.addEventListener('dragout', this.stopDrag);
+    window.addEventListener('mouseup', this.stopDrag);
+  },
+
+  stopDrag: function(ev) {
+    this.dragged = false;
+    window.removeEventListener('mousemove', this.hintMove);
+    var target = ev.currentTarget;
+    var simulate = !target.getAttribute || target.getAttribute('id') != 'simulator-area';
+    this.simulate();
+  },
+
+  fromBar: function(step) {
+    return step + this.promotion.min_quotas - 1;
+  },
+
+  toBar: function(numQuotas) {
+    return numQuotas - this.promotion.min_quotas + 1;
+  },
+
+  getTimeText: function(months, abb) {
+    var isYear = !(months % 12);
+    var num = isYear? months / 12 : months;
+    if (abb) return num + (isYear? 'a' : 'm'); 
+    var str = isYear? 'año' : 'mes';
+    if (num > 1) str += isYear? 's' : 'es';
+    return [num, str].join(' ');
+  },
+
+  getQuotaText: function(i) {
+    var mod = Math.ceil(this.promotion.max_quotas / 4);
+    return i % mod? '·' : this.getTimeText(i, true);
+  },
+
+  getRatioX: function(element, x) {
+    var rect = element.getBoundingClientRect();
+    return (x - rect.left) / rect.width;
+  },
+
+  setValue: function(percent) {
+    var max = this.toBar(this.promotion.max_quotas)
+    var sel = Math.round(percent * max) || 1;
+    if (!~this.promotion.excludes.indexOf(sel)) {
+      var q = this.fromBar(sel);
+      if (q != this.selectedQuotas) {
+        this.selectedQuotas = q;
+      }
+    }
+  },
+
+  click: function(ev) {
+    var target = ev.currentTarget;
+    var ratio = this.getRatioX(target, ev.clientX);
+    this.setValue(ratio);
+  },
+
+  hintMove: function(ev) {
+    if (this.dragged) {
+      this.startDrag(ev);
+    }
+  },
+
+  selectPromotion: function(ev) {
+    var value = ev.target.value;
+    if (!value) return;
+    var p = this.promotions[value];
+    this.promotion = p;
+    this.selectedQuotas = Math.max(Math.min(p.max_quotas, this.selectedQuotas || 36), p.min_quotas);
+    this.simulate();
+  },
+
+  selectQuotas: function(ev) {
+    var value = ev.target.value;
+    this.selectedQuotas = value;
+    this.simulate();
+  }
+}
+
+window.addEventListener('load', function() {
+  var vue = new Vue({ 
+    el: '#financial_promotions',
+    data: initialData,
+    methods: viewMethods,
+    computed: {
+      tooltip: function() {
+        return this.getTimeText(this.selectedQuotas);
+      },
+
+      width: function() {
+        var percent = 100 * this.toBar(this.selectedQuotas) / this.toBar(this.promotion.max_quotas);
+        return 'width: ' + percent + '%';
+      },
+
+      inactive_width: function() {
+        return 'width: 10%';
+      },
+
+      statusClass: function() {
+        return (this.loading)? 'loading' : 'normal';
+      },
+
+      hintLeft: function() {
+        if (this.hintX === null) return this.left;
+        return 'left: ' + this.hintX + '%';
+      },
+
+      left: function() {
+        var percent = 100 * this.toBar(this.selectedQuotas) / this.toBar(this.promotion.max_quotas);
+        return 'left: ' + percent + '%';
+      }
+    },
+    
+    mounted: function() {
+      this.reset();
+      this.loadPromotions();
+      this.$el.className = '';
+    }
+  });
+  var sim = !!vue.param('simulator');
+  vue.showSimulator = sim;
+  vue.showSelection = !sim;
+});
