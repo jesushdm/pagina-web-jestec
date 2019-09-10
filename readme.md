@@ -1,1 +1,1 @@
-# Pagina web de prueba. Experimentando con Boostrap.
+# Pagina web de prueba. Experimentando con Bootstrap.
